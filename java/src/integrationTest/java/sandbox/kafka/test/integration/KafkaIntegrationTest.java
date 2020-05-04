@@ -1,5 +1,7 @@
 package sandbox.kafka.test.integration;
 
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
@@ -7,6 +9,10 @@ import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
+import sandbox.kafka.consumer.Consumer;
+import sandbox.kafka.consumer.ConsumerConfig;
+import sandbox.kafka.producer.Producer;
+import sandbox.kafka.producer.ProducerConfig;
 
 /**
  * Base class for integration tests that sets up a containerized test environment in Docker.
@@ -26,11 +32,11 @@ public abstract class KafkaIntegrationTest {
     private static final Network network;
 
     // Kafka container
-    protected static final KafkaContainer kafka;
+    private static final KafkaContainer kafka;
 
     // Schema Registry container
-    protected static final GenericContainer<?> schemaRegistry;
-    protected static final String schemaRegistryUrl;
+    private static final GenericContainer<?> schemaRegistry;
+    private static final String schemaRegistryUrl;
 
     // setup Docker containers as singletons for reuse across integration tests
     static {
@@ -72,4 +78,33 @@ public abstract class KafkaIntegrationTest {
                 schemaRegistry.getContainerIpAddress(),
                 schemaRegistry.getMappedPort(8081));
     }
+
+    <K, V> Producer<K, V> createProducer(
+    		String topic,
+			Class<? extends Serializer<K>> keySerializer,
+			Class<? extends Serializer<V>> valueSerializer) {
+
+		ProducerConfig config = new ProducerConfig();
+		config.setBrokers(kafka.getBootstrapServers());
+		config.setTopic(topic);
+		config.setKeySerializer(keySerializer);
+		config.setValueSerializer(valueSerializer);
+
+		return new Producer<>(config);
+	}
+
+	<K, V> Consumer<K, V> createConsumer(
+			String topic,
+			Class<? extends Deserializer<K>> keyDeserializer,
+			Class<? extends Deserializer<V>> valueDeserializer) {
+
+		ConsumerConfig config = new ConsumerConfig();
+		config.setBrokers(kafka.getBootstrapServers());
+		config.setGroup("test-group");
+		config.setTopic(topic);
+		config.setKeyDeserializer(keyDeserializer);
+		config.setValueDeserializer(valueDeserializer);
+		config.addProperty("auto.offset.reset", "earliest");
+		return new Consumer<>(config);
+	}
 }

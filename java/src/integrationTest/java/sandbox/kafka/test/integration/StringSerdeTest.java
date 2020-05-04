@@ -7,10 +7,8 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.Test;
 import sandbox.kafka.consumer.Consumer;
-import sandbox.kafka.consumer.ConsumerConfig;
 import sandbox.kafka.producer.Message;
 import sandbox.kafka.producer.Producer;
-import sandbox.kafka.producer.ProducerConfig;
 
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
@@ -21,17 +19,21 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
- * This integration test verifies that we can send and receive a message through Kafka.
+ * This integration test verifies that we can send and receive a message through Kafka
+ * using String serialization.
  *
  */
-public class KafkaClientIntegrationTest extends KafkaIntegrationTest {
+public class StringSerdeTest extends KafkaIntegrationTest {
 
-    private static final String TOPIC = "test-topic";
+    private static final String TOPIC = "test";
 
     @Test
     public void testProducerAndConsumer() {
         // create Kafka producer
-        Producer<String, String> producer = createProducer();
+        Producer<String, String> producer = createProducer(
+        		TOPIC,
+				StringSerializer.class,
+				StringSerializer.class);
 
         // create test message
 		String key = "key";
@@ -61,7 +63,10 @@ public class KafkaClientIntegrationTest extends KafkaIntegrationTest {
 		assertTrue(metadata.get().hasTimestamp());
 
         // create Kafka consumer
-        Consumer<String, String> consumer = createConsumer();
+        Consumer<String, String> consumer = createConsumer(
+        		TOPIC,
+				StringDeserializer.class,
+				StringDeserializer.class);
 
         // poll once for messages
         ConsumerRecords<String, String> poll = consumer.poll();
@@ -83,25 +88,5 @@ public class KafkaClientIntegrationTest extends KafkaIntegrationTest {
         assertEquals(value, record.value());
         assertEquals(1, record.headers().toArray().length);
         assertEquals(contextId, new String(record.headers().lastHeader("context-id").value()));
-    }
-
-    private Producer<String, String> createProducer() {
-        ProducerConfig config = new ProducerConfig();
-        config.setBrokers(kafka.getBootstrapServers());
-        config.setTopic(TOPIC);
-        config.setKeySerializer(StringSerializer.class);
-        config.setValueSerializer(StringSerializer.class);
-        return new Producer<>(config);
-    }
-
-    private Consumer<String, String> createConsumer() {
-        ConsumerConfig config = new ConsumerConfig();
-        config.setBrokers(kafka.getBootstrapServers());
-        config.setGroup("test-group");
-        config.setTopic(TOPIC);
-        config.setKeyDeserializer(StringDeserializer.class);
-        config.setValueDeserializer(StringDeserializer.class);
-        config.addProperty("auto.offset.reset", "earliest");
-        return new Consumer<>(config);
     }
 }
