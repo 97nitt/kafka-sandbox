@@ -4,8 +4,14 @@ import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.header.Header;
+import org.apache.kafka.common.header.internals.RecordHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Kafka producer.
@@ -59,20 +65,10 @@ public class Producer<K, V> {
 	/**
 	 * Send message.
 	 *
-	 * @param value message value
+	 * @param message Kafka message
 	 */
-	public void send(V value) {
-		send(null, value);
-	}
-
-	/**
-	 * Send message.
-	 *
-	 * @param key message key
-	 * @param value message value
-	 */
-	public void send(K key, V value) {
-		send(key, value, null);
+	public void send(Message<K, V> message) {
+		send(message, null);
 	}
 
 	/**
@@ -82,30 +78,33 @@ public class Producer<K, V> {
 	 * message is acknowledged by the broker. If an error occurs, the callback will receive an {@link Exception} and
 	 * a {@link RecordMetadata} populated only with the attempted topic and partition.
 	 *
-	 * @param value message value
+	 * @param message Kafka message
 	 * @param callback optional asynchronous callback
 	 */
-	public void send(V value, Callback callback) {
-		send(null, value, callback);
+	public void send(Message<K, V> message, Callback callback) {
+		ProducerRecord<K, V> record = new ProducerRecord<>(
+				topic,
+				null,
+				message.getKey(),
+				message.getValue(),
+				convertHeaders(message.getHeaders()));
+
+		producer.send(record, callback == null ? defaultCallback : callback);
 	}
 
-	/**
-	 * Send message.
-	 *
-	 * An optional asynchronous callback can be provided that will receive a {@link RecordMetadata} when the message
-	 * message is acknowledged by the broker. If an error occurs, the callback will receive an {@link Exception} and
-	 * a {@link RecordMetadata} populated only with the attempted topic and partition.
-	 *
-	 * @param key message key
-	 * @param value message value
-	 * @param callback optional asynchronous callback
-	 */
-	public void send(K key, V value, Callback callback) {
-		if (callback == null) {
-			callback = defaultCallback;
+	private Iterable<Header> convertHeaders(Map<String, String> headers) {
+		return headers.entrySet()
+				.stream()
+				.map(h -> createHeader(h.getKey(), h.getValue()))
+				.collect(Collectors.toList());
+	}
+
+	private Header createHeader(String key, String value) {
+		byte[] bytes = null;
+		if (value != null) {
+			bytes = value.getBytes(StandardCharsets.UTF_8);
 		}
-		ProducerRecord<K, V> record = new ProducerRecord<>(topic, key, value);
-		producer.send(record, callback);
+		return new RecordHeader(key, bytes);
 	}
 
 	/**

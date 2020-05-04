@@ -8,9 +8,11 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.Test;
 import sandbox.kafka.consumer.Consumer;
 import sandbox.kafka.consumer.ConsumerConfig;
+import sandbox.kafka.producer.Message;
 import sandbox.kafka.producer.Producer;
 import sandbox.kafka.producer.ProducerConfig;
 
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.assertEquals;
@@ -31,14 +33,18 @@ public class KafkaClientIntegrationTest extends KafkaIntegrationTest {
         // create Kafka producer
         Producer<String, String> producer = createProducer();
 
-        // test message
+        // create test message
 		String key = "key";
 		String value = "test";
+		String contextId = UUID.randomUUID().toString();
+
+		Message<String, String> message = new Message<>(key, value);
+		message.addHeader("context-id", contextId);
 
         // send message
 		AtomicReference<RecordMetadata> metadata = new AtomicReference<>();
 		AtomicReference<Exception> exception = new AtomicReference<>();
-        producer.send(key, value, (meta, ex) -> {
+        producer.send(message, (meta, ex) -> {
         	metadata.set(meta);
         	exception.set(ex);
 		});
@@ -75,6 +81,8 @@ public class KafkaClientIntegrationTest extends KafkaIntegrationTest {
         assertTrue(record.timestamp() > 0);
         assertEquals(key, record.key());
         assertEquals(value, record.value());
+        assertEquals(1, record.headers().toArray().length);
+        assertEquals(contextId, new String(record.headers().lastHeader("context-id").value()));
     }
 
     private Producer<String, String> createProducer() {
