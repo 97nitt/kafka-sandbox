@@ -3,6 +3,18 @@ plugins {
     id 'jacoco'
 }
 
+sourceSets {
+    integrationTest {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+
+configurations {
+    integrationTestImplementation.extendsFrom implementation
+    integrationTestRuntimeOnly.extendsFrom runtimeOnly
+}
+
 repositories {
     jcenter()
 }
@@ -17,6 +29,20 @@ dependencies {
     // unit test dependencies
     testImplementation 'junit:junit:4.13'
     testImplementation 'org.mockito:mockito-core:3.3.3'
+
+    // integration test dependencies
+    integrationTestImplementation 'junit:junit:4.13'
+    integrationTestImplementation 'org.testcontainers:kafka:1.14.1'
+    integrationTestRuntimeOnly 'org.slf4j:slf4j-log4j12:1.7.30'
 }
 
-check.dependsOn jacocoTestReport
+task integrationTest(type: Test) {
+    description = 'Runs integration tests.'
+    group = 'verification'
+
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    mustRunAfter jacocoTestReport
+}
+
+check.dependsOn jacocoTestReport, integrationTest
