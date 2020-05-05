@@ -16,7 +16,9 @@ ext {
 sourceSets {
     integrationTest {
         compileClasspath += sourceSets.main.output
+        compileClasspath += sourceSets.testFixtures.output
         runtimeClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.testFixtures.output
     }
 }
 

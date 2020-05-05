@@ -1,7 +1,9 @@
 package sandbox.kafka.test.integration;
 
-import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.common.serialization.ByteArrayDeserializer;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
@@ -13,6 +15,9 @@ import sandbox.kafka.consumer.Consumer;
 import sandbox.kafka.consumer.ConsumerConfig;
 import sandbox.kafka.producer.Producer;
 import sandbox.kafka.producer.ProducerConfig;
+import sandbox.kafka.serde.avro.AvroDeserializer;
+import sandbox.kafka.serde.avro.AvroSerializer;
+import sandbox.kafka.test.models.Thingy;
 
 /**
  * Base class for integration tests that sets up a containerized test environment in Docker.
@@ -79,32 +84,52 @@ public abstract class KafkaIntegrationTest {
                 schemaRegistry.getMappedPort(8081));
     }
 
-    <K, V> Producer<K, V> createProducer(
-    		String topic,
-			Class<? extends Serializer<K>> keySerializer,
-			Class<? extends Serializer<V>> valueSerializer) {
+    static Producer<byte[], Thingy> createAvroProducer(String topic) {
+    	ProducerConfig config = defaultProducerConfig(topic);
+    	config.setValueSerializer(AvroSerializer.class);
+    	config.addProperty("schema.registry.url", schemaRegistryUrl);
+    	return new Producer<>(config);
+	}
 
-		ProducerConfig config = new ProducerConfig();
-		config.setBrokers(kafka.getBootstrapServers());
-		config.setTopic(topic);
-		config.setKeySerializer(keySerializer);
-		config.setValueSerializer(valueSerializer);
-
+    static Producer<String, String> createStringProducer(String topic) {
+		ProducerConfig config = defaultProducerConfig(topic);
+		config.setKeySerializer(StringSerializer.class);
+		config.setValueSerializer(StringSerializer.class);
 		return new Producer<>(config);
 	}
 
-	<K, V> Consumer<K, V> createConsumer(
-			String topic,
-			Class<? extends Deserializer<K>> keyDeserializer,
-			Class<? extends Deserializer<V>> valueDeserializer) {
+	private static ProducerConfig defaultProducerConfig(String topic) {
+		ProducerConfig config = new ProducerConfig();
+		config.setBrokers(kafka.getBootstrapServers());
+		config.setTopic(topic);
+		config.setKeySerializer(ByteArraySerializer.class);
+		config.setValueSerializer(ByteArraySerializer.class);
+		return config;
+	}
 
+	static Consumer<byte[], Thingy> createAvroConsumer(String topic) {
+    	ConsumerConfig config = defaultConsumerConfig(topic);
+    	config.setValueDeserializer(AvroDeserializer.class);
+    	config.addProperty("schema.registry.url", schemaRegistryUrl);
+    	config.addProperty("value.deserializer.type", Thingy.class);
+    	return new Consumer<>(config);
+	}
+
+	static Consumer<String, String> createStringConsumer(String topic) {
+		ConsumerConfig config = defaultConsumerConfig(topic);
+		config.setKeyDeserializer(StringDeserializer.class);
+		config.setValueDeserializer(StringDeserializer.class);
+		return new Consumer<>(config);
+	}
+
+	private static ConsumerConfig defaultConsumerConfig(String topic) {
 		ConsumerConfig config = new ConsumerConfig();
 		config.setBrokers(kafka.getBootstrapServers());
 		config.setGroup("test-group");
 		config.setTopic(topic);
-		config.setKeyDeserializer(keyDeserializer);
-		config.setValueDeserializer(valueDeserializer);
+		config.setKeyDeserializer(ByteArrayDeserializer.class);
+		config.setValueDeserializer(ByteArrayDeserializer.class);
 		config.addProperty("auto.offset.reset", "earliest");
-		return new Consumer<>(config);
+		return config;
 	}
 }

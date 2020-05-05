@@ -7,6 +7,7 @@ import org.junit.Test;
 import sandbox.kafka.consumer.Consumer;
 import sandbox.kafka.producer.Message;
 import sandbox.kafka.producer.Producer;
+import sandbox.kafka.test.models.Thingy;
 
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
@@ -18,24 +19,23 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * This integration test verifies that we can send and receive a message through Kafka
- * using String serialization.
+ * using Avro serialization.
  *
  */
-public class StringSerdeTest extends KafkaIntegrationTest {
+public class AvroSerdeTest extends KafkaIntegrationTest {
 
-    private static final String TOPIC = "test";
+    private static final String TOPIC = "test-avro";
 
     @Test
     public void sendMessage() {
         // create Kafka producer
-        Producer<String, String> producer = createStringProducer(TOPIC);
+        Producer<byte[], Thingy> producer = createAvroProducer(TOPIC);
 
         // create test message
-		String key = "key";
-		String value = "test";
+		Thingy thingy = new Thingy("test", "ing");
 		String contextId = UUID.randomUUID().toString();
 
-		Message<String, String> message = new Message<>(key, value);
+		Message<byte[], Thingy> message = new Message<>(thingy);
 		message.addHeader("context-id", contextId);
 
         // send message
@@ -58,10 +58,10 @@ public class StringSerdeTest extends KafkaIntegrationTest {
 		assertTrue(metadata.get().hasTimestamp());
 
         // create Kafka consumer
-        Consumer<String, String> consumer = createStringConsumer(TOPIC);
+        Consumer<byte[], Thingy> consumer = createAvroConsumer(TOPIC);
 
         // poll once for messages
-        ConsumerRecords<String, String> poll = consumer.poll();
+        ConsumerRecords<byte[], Thingy> poll = consumer.poll();
 
         // close Kafka consumer
         consumer.close();
@@ -70,14 +70,15 @@ public class StringSerdeTest extends KafkaIntegrationTest {
         assertNotNull(poll);
         assertEquals(1, poll.count());
 
-		ConsumerRecord<String, String> record = poll.iterator().next();
+		ConsumerRecord<byte[], Thingy> record = poll.iterator().next();
         assertNotNull(record);
         assertEquals(TOPIC, record.topic());
         assertEquals(0, record.partition());
         assertEquals(0, record.offset());
         assertTrue(record.timestamp() > 0);
-        assertEquals(key, record.key());
-        assertEquals(value, record.value());
+        assertNull(record.key());
+        assertEquals(thingy.getFoo(), record.value().getFoo());
+        assertEquals(thingy.getBar(), record.value().getBar());
         assertEquals(1, record.headers().toArray().length);
         assertEquals(contextId, new String(record.headers().lastHeader("context-id").value()));
     }
