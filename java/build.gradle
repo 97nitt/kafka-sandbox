@@ -1,6 +1,16 @@
 plugins {
     id 'java'
+    id 'java-test-fixtures'
     id 'jacoco'
+}
+
+ext {
+    confluentVersion = '5.5.0'
+    junitVersion = '4.13'
+    lombokVersion = '1.18.12'
+    mockitoVersion = '3.3.3'
+    slf4jVersion = '1.7.30'
+    testContainersVersion = '1.14.1'
 }
 
 sourceSets {
@@ -17,23 +27,28 @@ configurations {
 
 repositories {
     jcenter()
+    maven { url "https://packages.confluent.io/maven" }
 }
 
 dependencies {
     // main dependencies
-    annotationProcessor 'org.projectlombok:lombok:1.18.12'
-    compileOnly 'org.projectlombok:lombok:1.18.12'
-    implementation 'org.apache.kafka:kafka-clients:2.5.0'
-    implementation 'org.slf4j:slf4j-api:1.7.30'
+    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+    compileOnly "org.projectlombok:lombok:$lombokVersion"
+    implementation "io.confluent:kafka-avro-serializer:$confluentVersion"
+    implementation "org.slf4j:slf4j-api:$slf4jVersion"
+
+    // test fixture dependencies
+    testFixturesAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
+    testFixturesCompileOnly "org.projectlombok:lombok:$lombokVersion"
 
     // unit test dependencies
-    testImplementation 'junit:junit:4.13'
-    testImplementation 'org.mockito:mockito-core:3.3.3'
+    testImplementation "junit:junit:$junitVersion"
+    testImplementation "org.mockito:mockito-core:$mockitoVersion"
 
     // integration test dependencies
-    integrationTestImplementation 'junit:junit:4.13'
-    integrationTestImplementation 'org.testcontainers:kafka:1.14.1'
-    integrationTestRuntimeOnly 'org.slf4j:slf4j-log4j12:1.7.30'
+    integrationTestImplementation "junit:junit:$junitVersion"
+    integrationTestImplementation "org.testcontainers:kafka:$testContainersVersion"
+    integrationTestRuntimeOnly "org.slf4j:slf4j-log4j12:$slf4jVersion"
 }
 
 task integrationTest(type: Test) {
