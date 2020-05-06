@@ -30,6 +30,7 @@ configurations {
 repositories {
     jcenter()
     maven { url "https://packages.confluent.io/maven" }
+    maven { url "https://jitpack.io" }
 }
 
 dependencies {
@@ -37,6 +38,7 @@ dependencies {
     annotationProcessor "org.projectlombok:lombok:$lombokVersion"
     compileOnly "org.projectlombok:lombok:$lombokVersion"
     implementation "io.confluent:kafka-avro-serializer:$confluentVersion"
+    implementation "io.confluent:kafka-json-schema-serializer:$confluentVersion"
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
 
     // test fixture dependencies
