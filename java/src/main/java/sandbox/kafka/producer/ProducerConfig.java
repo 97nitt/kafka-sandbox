@@ -24,10 +24,10 @@ public class ProducerConfig {
 	private String topic;
 
 	/* Message key serializer */
-	private Class<? extends Serializer<?>> keySerializer;
+	private Class<? extends Serializer> keySerializer;
 
 	/* Message value serializer */
-	private Class<? extends Serializer<?>> valueSerializer;
+	private Class<? extends Serializer> valueSerializer;
 
 	/* Additional configuration properties */
 	private Properties properties;

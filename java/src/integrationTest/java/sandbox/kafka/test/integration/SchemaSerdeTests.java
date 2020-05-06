@@ -18,18 +18,36 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
- * This integration test verifies that we can send and receive a message through Kafka
- * using Avro serialization.
+ * These integration tests verify that we can send and receive a message through Kafka
+ * using different schema-based serializers.
  *
  */
-public class AvroSerdeTest extends KafkaIntegrationTest {
+public class SchemaSerdeTests extends KafkaIntegrationTest {
 
-    private static final String TOPIC = "test-avro";
+	@Test
+	public void avro() {
+		String topic = "test-avro";
 
-    @Test
-    public void sendMessage() {
-        // create Kafka producer
-        Producer<byte[], Thingy> producer = createAvroProducer(TOPIC);
+		Producer<byte[], Thingy> producer = createAvroProducer(topic);
+		Consumer<byte[], Thingy> consumer = createAvroConsumer(topic);
+
+		executeTest(topic, producer, consumer);
+	}
+
+	@Test
+	public void json() {
+		String topic = "test-json";
+
+		Producer<byte[], Thingy> producer = createJsonProducer(topic);
+		Consumer<byte[], Thingy> consumer = createJsonConsumer(topic);
+
+		executeTest(topic, producer, consumer);
+	}
+
+	private void executeTest(
+			String topic,
+			Producer<byte[], Thingy> producer,
+			Consumer<byte[], Thingy> consumer) {
 
         // create test message
 		Thingy thingy = new Thingy("test", "ing");
@@ -52,13 +70,10 @@ public class AvroSerdeTest extends KafkaIntegrationTest {
 		// verify successful receipt
 		assertNull(exception.get());
 		assertNotNull(metadata.get());
-		assertEquals(TOPIC, metadata.get().topic());
+		assertEquals(topic, metadata.get().topic());
 		assertEquals(0, metadata.get().partition());
 		assertEquals(0, metadata.get().offset());
 		assertTrue(metadata.get().hasTimestamp());
-
-        // create Kafka consumer
-        Consumer<byte[], Thingy> consumer = createAvroConsumer(TOPIC);
 
         // poll once for messages
         ConsumerRecords<byte[], Thingy> poll = consumer.poll();
@@ -72,7 +87,7 @@ public class AvroSerdeTest extends KafkaIntegrationTest {
 
 		ConsumerRecord<byte[], Thingy> record = poll.iterator().next();
         assertNotNull(record);
-        assertEquals(TOPIC, record.topic());
+        assertEquals(topic, record.topic());
         assertEquals(0, record.partition());
         assertEquals(0, record.offset());
         assertTrue(record.timestamp() > 0);

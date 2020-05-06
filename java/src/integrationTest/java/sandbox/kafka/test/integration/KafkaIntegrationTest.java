@@ -1,5 +1,7 @@
 package sandbox.kafka.test.integration;
 
+import io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializer;
+import io.confluent.kafka.serializers.json.KafkaJsonSchemaSerializer;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -91,6 +93,14 @@ public abstract class KafkaIntegrationTest {
     	return new Producer<>(config);
 	}
 
+	static Producer<byte[], Thingy> createJsonProducer(String topic) {
+    	ProducerConfig config = defaultProducerConfig(topic);
+    	config.setValueSerializer(KafkaJsonSchemaSerializer.class);
+    	config.addProperty("schema.registry.url", schemaRegistryUrl);
+    	config.addProperty("json.value.type", Thingy.class);
+    	return new Producer<>(config);
+	}
+
     static Producer<String, String> createStringProducer(String topic) {
 		ProducerConfig config = defaultProducerConfig(topic);
 		config.setKeySerializer(StringSerializer.class);
@@ -112,6 +122,14 @@ public abstract class KafkaIntegrationTest {
     	config.setValueDeserializer(AvroDeserializer.class);
     	config.addProperty("schema.registry.url", schemaRegistryUrl);
     	config.addProperty("value.deserializer.type", Thingy.class);
+    	return new Consumer<>(config);
+	}
+
+	static Consumer<byte[], Thingy> createJsonConsumer(String topic) {
+    	ConsumerConfig config = defaultConsumerConfig(topic);
+    	config.setValueDeserializer(KafkaJsonSchemaDeserializer.class);
+    	config.addProperty("schema.registry.url", schemaRegistryUrl);
+    	config.addProperty("json.value.type", Thingy.class);
     	return new Consumer<>(config);
 	}
 

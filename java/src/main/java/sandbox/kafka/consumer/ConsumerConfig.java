@@ -30,10 +30,10 @@ public class ConsumerConfig {
 	private long pollTimeout = 1000;
 
 	/* Message key deserializer */
-	private Class<? extends Deserializer<?>> keyDeserializer;
+	private Class<? extends Deserializer> keyDeserializer;
 
 	/* Message value deserializer */
-	private Class<? extends Deserializer<?>> valueDeserializer;
+	private Class<? extends Deserializer> valueDeserializer;
 
 	/* Additional configuration properties */
 	private Properties properties;
