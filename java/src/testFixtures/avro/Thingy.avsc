@@ -1,0 +1,8 @@
+{"namespace": "sandbox.kafka.test",
+ "type": "record",
+ "name": "AvroThingy",
+ "fields": [
+     {"name": "foo", "type": "string"},
+     {"name": "bar", "type": "string"}
+ ]
+}

@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.producer.RecordMetadata;
@@ -14,6 +15,7 @@ import org.junit.Test;
 import sandbox.kafka.consumer.Consumer;
 import sandbox.kafka.producer.Message;
 import sandbox.kafka.producer.Producer;
+import sandbox.kafka.test.AvroThingy;
 import sandbox.kafka.test.models.Thingy;
 
 /**
@@ -23,33 +25,67 @@ import sandbox.kafka.test.models.Thingy;
 public class SchemaSerdeTests extends KafkaIntegrationTest {
 
   @Test
-  public void avro() {
-    String topic = "test-avro";
+  public void avroUsingReflection() {
+    Thingy input = new Thingy("test", "ing");
+    String topic = "test-avro-reflection";
 
-    Producer<byte[], Thingy> producer = createAvroProducer(topic);
-    Consumer<byte[], Thingy> consumer = createAvroConsumer(topic);
+    Producer<byte[], Thingy> producer = createAvroProducer(topic, true);
+    Consumer<byte[], Thingy> consumer = createAvroConsumer(topic, true);
 
-    executeTest(topic, producer, consumer);
+    BiConsumer<Thingy, Thingy> assertions =
+        (i, o) -> {
+          assertEquals(i.getFoo(), o.getFoo());
+          assertEquals(i.getBar(), o.getBar());
+        };
+
+    executeTest(input, topic, producer, consumer, assertions);
+  }
+
+  @Test
+  public void avroUsingSpecificData() {
+    AvroThingy input = AvroThingy.newBuilder().setFoo("test").setBar("ing").build();
+
+    String topic = "test-avro-specific";
+
+    Producer<byte[], AvroThingy> producer = createAvroProducer(topic, false);
+    Consumer<byte[], AvroThingy> consumer = createAvroConsumer(topic, false);
+
+    BiConsumer<AvroThingy, AvroThingy> assertions =
+        (i, o) -> {
+          assertEquals(i.getFoo(), o.getFoo());
+          assertEquals(i.getBar(), o.getBar());
+        };
+
+    executeTest(input, topic, producer, consumer, assertions);
   }
 
   @Test
   public void json() {
+    Thingy input = new Thingy("test", "ing");
     String topic = "test-json";
 
-    Producer<byte[], Thingy> producer = createJsonProducer(topic);
-    Consumer<byte[], Thingy> consumer = createJsonConsumer(topic);
+    Producer<byte[], Thingy> producer = createJsonProducer(topic, Thingy.class);
+    Consumer<byte[], Thingy> consumer = createJsonConsumer(topic, Thingy.class);
 
-    executeTest(topic, producer, consumer);
+    BiConsumer<Thingy, Thingy> assertions =
+        (i, o) -> {
+          assertEquals(i.getFoo(), o.getFoo());
+          assertEquals(i.getBar(), o.getBar());
+        };
+
+    executeTest(input, topic, producer, consumer, assertions);
   }
 
-  private void executeTest(
-      String topic, Producer<byte[], Thingy> producer, Consumer<byte[], Thingy> consumer) {
+  private <I, O> void executeTest(
+      I input,
+      String topic,
+      Producer<byte[], I> producer,
+      Consumer<byte[], O> consumer,
+      BiConsumer<I, O> assertions) {
 
     // create test message
-    Thingy thingy = new Thingy("test", "ing");
     String contextId = UUID.randomUUID().toString();
-
-    Message<byte[], Thingy> message = new Message<>(thingy);
+    Message<byte[], I> message = new Message<>(input);
     message.addHeader("context-id", contextId);
 
     // send message
@@ -74,7 +110,7 @@ public class SchemaSerdeTests extends KafkaIntegrationTest {
     assertTrue(metadata.get().hasTimestamp());
 
     // poll once for messages
-    ConsumerRecords<byte[], Thingy> poll = consumer.poll();
+    ConsumerRecords<byte[], O> poll = consumer.poll();
 
     // close Kafka consumer
     consumer.close();
@@ -83,16 +119,17 @@ public class SchemaSerdeTests extends KafkaIntegrationTest {
     assertNotNull(poll);
     assertEquals(1, poll.count());
 
-    ConsumerRecord<byte[], Thingy> record = poll.iterator().next();
+    ConsumerRecord<byte[], O> record = poll.iterator().next();
     assertNotNull(record);
     assertEquals(topic, record.topic());
     assertEquals(0, record.partition());
     assertEquals(0, record.offset());
     assertTrue(record.timestamp() > 0);
     assertNull(record.key());
-    assertEquals(thingy.getFoo(), record.value().getFoo());
-    assertEquals(thingy.getBar(), record.value().getBar());
     assertEquals(1, record.headers().toArray().length);
     assertEquals(contextId, new String(record.headers().lastHeader("context-id").value()));
+
+    O output = record.value();
+    assertions.accept(input, output);
   }
 }

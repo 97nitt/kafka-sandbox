@@ -1,11 +1,11 @@
 package sandbox.kafka.test.integration;
 
+import io.confluent.kafka.serializers.KafkaAvroDeserializer;
+import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializer;
 import io.confluent.kafka.serializers.json.KafkaJsonSchemaSerializer;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
@@ -17,9 +17,6 @@ import sandbox.kafka.consumer.Consumer;
 import sandbox.kafka.consumer.ConsumerConfig;
 import sandbox.kafka.producer.Producer;
 import sandbox.kafka.producer.ProducerConfig;
-import sandbox.kafka.serde.avro.AvroDeserializer;
-import sandbox.kafka.serde.avro.AvroSerializer;
-import sandbox.kafka.test.models.Thingy;
 
 /**
  * Base class for integration tests that sets up a containerized test environment in Docker.
@@ -91,25 +88,19 @@ public abstract class KafkaIntegrationTest {
             schemaRegistry.getContainerIpAddress(), schemaRegistry.getMappedPort(8081));
   }
 
-  static Producer<byte[], Thingy> createAvroProducer(String topic) {
+  static <T> Producer<byte[], T> createAvroProducer(String topic, boolean schemaReflection) {
     ProducerConfig config = defaultProducerConfig(topic);
-    config.setValueSerializer(AvroSerializer.class);
+    config.setValueSerializer(KafkaAvroSerializer.class);
     config.addProperty("schema.registry.url", schemaRegistryUrl);
+    config.addProperty("schema.reflection", schemaReflection);
     return new Producer<>(config);
   }
 
-  static Producer<byte[], Thingy> createJsonProducer(String topic) {
+  static <T> Producer<byte[], T> createJsonProducer(String topic, Class<T> type) {
     ProducerConfig config = defaultProducerConfig(topic);
     config.setValueSerializer(KafkaJsonSchemaSerializer.class);
     config.addProperty("schema.registry.url", schemaRegistryUrl);
-    config.addProperty("json.value.type", Thingy.class);
-    return new Producer<>(config);
-  }
-
-  static Producer<String, String> createStringProducer(String topic) {
-    ProducerConfig config = defaultProducerConfig(topic);
-    config.setKeySerializer(StringSerializer.class);
-    config.setValueSerializer(StringSerializer.class);
+    config.addProperty("json.value.type", type);
     return new Producer<>(config);
   }
 
@@ -122,26 +113,20 @@ public abstract class KafkaIntegrationTest {
     return config;
   }
 
-  static Consumer<byte[], Thingy> createAvroConsumer(String topic) {
+  static <T> Consumer<byte[], T> createAvroConsumer(String topic, boolean schemaReflection) {
     ConsumerConfig config = defaultConsumerConfig(topic);
-    config.setValueDeserializer(AvroDeserializer.class);
+    config.setValueDeserializer(KafkaAvroDeserializer.class);
     config.addProperty("schema.registry.url", schemaRegistryUrl);
-    config.addProperty("value.deserializer.type", Thingy.class);
+    config.addProperty("schema.reflection", schemaReflection);
+    config.addProperty("specific.avro.reader", !schemaReflection);
     return new Consumer<>(config);
   }
 
-  static Consumer<byte[], Thingy> createJsonConsumer(String topic) {
+  static <T> Consumer<byte[], T> createJsonConsumer(String topic, Class<T> type) {
     ConsumerConfig config = defaultConsumerConfig(topic);
     config.setValueDeserializer(KafkaJsonSchemaDeserializer.class);
     config.addProperty("schema.registry.url", schemaRegistryUrl);
-    config.addProperty("json.value.type", Thingy.class);
-    return new Consumer<>(config);
-  }
-
-  static Consumer<String, String> createStringConsumer(String topic) {
-    ConsumerConfig config = defaultConsumerConfig(topic);
-    config.setKeyDeserializer(StringDeserializer.class);
-    config.setValueDeserializer(StringDeserializer.class);
+    config.addProperty("json.value.type", type);
     return new Consumer<>(config);
   }
 
