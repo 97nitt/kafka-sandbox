@@ -1,4 +1,4 @@
-# Kafka Sandbox
+# Kafka Sandbox [![Build Status](https://travis-ci.com/97nitt/serde-sandbox.svg?token=9wZj3TUqNCufm9GNxgso&branch=master)](https://travis-ci.com/97nitt/serde-sandbox)
 
 This repo serves as a playground for exploring features of Kafka.
 
