@@ -13,6 +13,8 @@ This project serves as a playground for exploring features of Kafka using Java.
 - custom [Avro serializers](src/main/java/sandbox/kafka/serde/avro) that make it easy to serialize a
   POJO to Avro-encoded bytes, and deserialize Avro-encoded bytes to a POJO, using a Confluent schema
   registry and Avro's built-in support for generating schemas using reflection
+  
+- simple [Spring](src/main/java/sandbox/kafka/spring) application to demonstrate use of [spring-kafka](https://spring.io/projects/spring-kafka)
 
 Each of the above have associated unit tests to demonstrate and validate usage.
 

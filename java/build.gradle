@@ -1,87 +1,49 @@
-plugins {
-    id 'idea'
-    id 'java'
-    id 'java-test-fixtures'
-    id 'jacoco'
-    id 'com.github.sherter.google-java-format' version '0.8'
-    id 'com.commercehub.gradle.plugin.avro' version '0.19.1'
-    id "com.google.protobuf" version "0.8.12"
-}
+subprojects {
 
-ext {
-    avroVersion = '1.9.2'
-    confluentVersion = '5.5.0'
-    junitVersion = '5.6.2'
-    lombokVersion = '1.18.12'
-    mockitoVersion = '3.3.3'
-    protobufVersion = '3.12.0'
-    slf4jVersion = '1.7.30'
-    testContainersVersion = '1.14.3'
-}
+    apply plugin: "idea"
+    apply plugin: "java"
+    apply plugin: "java-test-fixtures"
+    apply plugin: "jacoco"
 
-protobuf {
-    protoc {
-        artifact = "com.google.protobuf:protoc:$protobufVersion"
+    ext {
+        junitVersion = '5.6.2'
+        lombokVersion = '1.18.12'
+        mockitoVersion = '3.3.3'
+        slf4jVersion = '1.7.30'
+    }
+
+    repositories {
+        jcenter()
+        maven { url "https://packages.confluent.io/maven" }
+        maven { url "https://jitpack.io" }
+    }
+
+    sourceSets {
+        integrationTest {
+            compileClasspath += sourceSets.main.output
+            compileClasspath += sourceSets.testFixtures.output
+            runtimeClasspath += sourceSets.main.output
+            runtimeClasspath += sourceSets.testFixtures.output
+        }
+    }
+
+    configurations {
+        integrationTestImplementation.extendsFrom implementation
+        integrationTestRuntimeOnly.extendsFrom runtimeOnly
+    }
+
+    task integrationTest(type: Test) {
+        description = 'Runs integration tests.'
+        group = 'verification'
+        testClassesDirs = sourceSets.integrationTest.output.classesDirs
+        classpath = sourceSets.integrationTest.runtimeClasspath
+        useJUnitPlatform()
+        mustRunAfter jacocoTestReport
+    }
+
+    check.dependsOn jacocoTestReport, integrationTest
+
+    test {
+        useJUnitPlatform()
     }
 }
-
-sourceSets {
-    integrationTest {
-        compileClasspath += sourceSets.main.output
-        compileClasspath += sourceSets.testFixtures.output
-        runtimeClasspath += sourceSets.main.output
-        runtimeClasspath += sourceSets.testFixtures.output
-    }
-}
-
-configurations {
-    integrationTestImplementation.extendsFrom implementation
-    integrationTestRuntimeOnly.extendsFrom runtimeOnly
-}
-
-repositories {
-    jcenter()
-    maven { url "https://packages.confluent.io/maven" }
-    maven { url "https://jitpack.io" }
-}
-
-dependencies {
-    // main dependencies
-    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
-    compileOnly "org.projectlombok:lombok:$lombokVersion"
-    implementation "io.confluent:kafka-avro-serializer:$confluentVersion"
-    implementation "io.confluent:kafka-json-schema-serializer:$confluentVersion"
-    implementation "io.confluent:kafka-protobuf-serializer:$confluentVersion"
-    implementation "org.slf4j:slf4j-api:$slf4jVersion"
-
-    // test fixture dependencies
-    testFixturesAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
-    testFixturesCompileOnly "org.projectlombok:lombok:$lombokVersion"
-    testFixturesImplementation "com.google.protobuf:protobuf-java:$protobufVersion"
-    testFixturesImplementation "org.apache.avro:avro:$avroVersion"
-
-    // unit test dependencies
-    testImplementation "org.junit.jupiter:junit-jupiter:$junitVersion"
-    testImplementation "org.mockito:mockito-core:$mockitoVersion"
-
-    // integration test dependencies
-    integrationTestImplementation "org.junit.jupiter:junit-jupiter:$junitVersion"
-    integrationTestImplementation "org.testcontainers:junit-jupiter:$testContainersVersion"
-    integrationTestImplementation "org.testcontainers:kafka:$testContainersVersion"
-    integrationTestRuntimeOnly "org.slf4j:slf4j-log4j12:$slf4jVersion"
-}
-
-test {
-    useJUnitPlatform()
-}
-
-task integrationTest(type: Test) {
-    description = 'Runs integration tests.'
-    group = 'verification'
-    testClassesDirs = sourceSets.integrationTest.output.classesDirs
-    classpath = sourceSets.integrationTest.runtimeClasspath
-    useJUnitPlatform()
-    mustRunAfter jacocoTestReport
-}
-
-check.dependsOn jacocoTestReport, integrationTest

@@ -8,4 +8,8 @@ pluginManagement {
         }
     }
 }
-rootProject.name = 'kafka-java'
+rootProject.name = "kafka-java"
+
+include "kafka-common"
+include "kafka-integration-test"
+include "kafka-request-reply"

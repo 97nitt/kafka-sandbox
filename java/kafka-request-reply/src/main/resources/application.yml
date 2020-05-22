@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: kafka-sandbox
+
+kafka:
+  brokers: localhost:9092
+  schema-registry: http://localhost:8081
+  topics:
+    # user data should persist in this log-compacted topic between application restarts
+    data:
+      name: users
+      partitions: 1
+      replication-factor: 1
+      configs:
+        cleanup.policy: compact
+      create-on-startup: true
+      delete-on-shutdown: false
+
+    # a unique response topic should be created for each application instance
+    response:
+      name: users-response-${random.uuid}
+      partitions: 1
+      replication-factor: 1
+      configs:
+        retention.ms: 60000
+      create-on-startup: true
+      delete-on-shutdown: true

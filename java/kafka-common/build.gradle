@@ -1,0 +1,43 @@
+plugins {
+    id 'java-library'
+    id 'com.github.sherter.google-java-format' version '0.8'
+    id 'com.commercehub.gradle.plugin.avro' version '0.19.1'
+    id 'com.google.protobuf' version '0.8.12'
+}
+
+ext {
+    avroVersion = '1.9.2'
+    confluentVersion = '5.5.0'
+    protobufVersion = '3.12.0'
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:$protobufVersion"
+    }
+}
+
+dependencies {
+    // main dependencies
+    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+    compileOnly "org.projectlombok:lombok:$lombokVersion"
+    api "io.confluent:kafka-avro-serializer:$confluentVersion"
+    api "io.confluent:kafka-json-schema-serializer:$confluentVersion"
+    api "io.confluent:kafka-protobuf-serializer:$confluentVersion"
+    api "org.slf4j:slf4j-api:$slf4jVersion"
+
+    // test fixture dependencies
+    testFixturesAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
+    testFixturesCompileOnly "org.projectlombok:lombok:$lombokVersion"
+    testFixturesImplementation "com.google.protobuf:protobuf-java:$protobufVersion"
+    testFixturesImplementation "org.apache.avro:avro:$avroVersion"
+
+    // unit test dependencies
+    testImplementation "org.junit.jupiter:junit-jupiter:$junitVersion"
+    testImplementation "org.mockito:mockito-core:$mockitoVersion"
+
+    // integration test dependencies
+    integrationTestImplementation project(":kafka-integration-test")
+    integrationTestImplementation "org.junit.jupiter:junit-jupiter:$junitVersion"
+    integrationTestRuntimeOnly "org.slf4j:slf4j-log4j12:$slf4jVersion"
+}

@@ -1,0 +1,36 @@
+plugins {
+    id 'org.springframework.boot' version '2.3.0.RELEASE'
+}
+
+ext {
+    springBootVersion = '2.3.0.RELEASE'
+}
+
+dependencies {
+    // main dependencies
+    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+    compileOnly "org.projectlombok:lombok:$lombokVersion"
+    implementation project(":kafka-common")
+    implementation "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
+
+    // test fixture dependencies
+    testFixturesAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
+    testFixturesCompileOnly "org.projectlombok:lombok:$lombokVersion"
+
+    // unit test dependencies
+    testImplementation "org.junit.jupiter:junit-jupiter:$junitVersion"
+    testImplementation "org.mockito:mockito-core:$mockitoVersion"
+
+    // integration test dependencies
+    integrationTestImplementation project(":kafka-integration-test")
+    integrationTestImplementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion") {
+        exclude group: "org.junit.vintage", module: "junit-vintage-engine"
+    }
+}
+
+// workaround for bug when using Gradle 6+ with Spring Boot and Java Fixtures plugins
+// see https://github.com/spring-projects/spring-boot/issues/19380
+jar {
+    enabled = true
+    archiveFileName = "${project.name}-classes.jar"
+}

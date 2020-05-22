@@ -1,0 +1,14 @@
+plugins {
+    id 'java-library'
+}
+
+ext {
+    testContainersVersion = '1.14.3'
+}
+
+dependencies {
+    // main dependencies
+    api "org.testcontainers:junit-jupiter:$testContainersVersion"
+    api "org.testcontainers:kafka:$testContainersVersion"
+    api "org.slf4j:slf4j-api:$slf4jVersion"
+}
