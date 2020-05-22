@@ -15,8 +15,9 @@ import org.junit.Test;
 import sandbox.kafka.consumer.Consumer;
 import sandbox.kafka.producer.Message;
 import sandbox.kafka.producer.Producer;
-import sandbox.kafka.test.AvroThingy;
+import sandbox.kafka.test.models.AvroThingy;
 import sandbox.kafka.test.models.Thingy;
+import sandbox.kafka.test.models.ThingyProto;
 
 /**
  * These integration tests verify that we can send and receive a message through Kafka using
@@ -68,6 +69,24 @@ public class SchemaSerdeTests extends KafkaIntegrationTest {
     Consumer<byte[], Thingy> consumer = createJsonConsumer(topic, Thingy.class);
 
     BiConsumer<Thingy, Thingy> assertions =
+        (i, o) -> {
+          assertEquals(i.getFoo(), o.getFoo());
+          assertEquals(i.getBar(), o.getBar());
+        };
+
+    executeTest(input, topic, producer, consumer, assertions);
+  }
+
+  @Test
+  public void proto() {
+    ThingyProto.Thingy input = ThingyProto.Thingy.newBuilder().setFoo("test").setBar("ing").build();
+    String topic = "test-proto";
+
+    Producer<byte[], ThingyProto.Thingy> producer = createProtoProducer(topic);
+    Consumer<byte[], ThingyProto.Thingy> consumer =
+        createProtoConsumer(topic, ThingyProto.Thingy.class);
+
+    BiConsumer<ThingyProto.Thingy, ThingyProto.Thingy> assertions =
         (i, o) -> {
           assertEquals(i.getFoo(), o.getFoo());
           assertEquals(i.getBar(), o.getBar());

@@ -1,9 +1,11 @@
 plugins {
+    id 'idea'
     id 'java'
     id 'java-test-fixtures'
     id 'jacoco'
     id 'com.github.sherter.google-java-format' version '0.8'
     id 'com.commercehub.gradle.plugin.avro' version '0.19.1'
+    id "com.google.protobuf" version "0.8.12"
 }
 
 ext {
@@ -12,8 +14,15 @@ ext {
     junitVersion = '4.13'
     lombokVersion = '1.18.12'
     mockitoVersion = '3.3.3'
+    protobufVersion = '3.12.0'
     slf4jVersion = '1.7.30'
     testContainersVersion = '1.14.1'
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:$protobufVersion"
+    }
 }
 
 sourceSets {
@@ -42,11 +51,13 @@ dependencies {
     compileOnly "org.projectlombok:lombok:$lombokVersion"
     implementation "io.confluent:kafka-avro-serializer:$confluentVersion"
     implementation "io.confluent:kafka-json-schema-serializer:$confluentVersion"
+    implementation "io.confluent:kafka-protobuf-serializer:$confluentVersion"
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
 
     // test fixture dependencies
     testFixturesAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
     testFixturesCompileOnly "org.projectlombok:lombok:$lombokVersion"
+    testFixturesImplementation "com.google.protobuf:protobuf-java:$protobufVersion"
     testFixturesImplementation "org.apache.avro:avro:$avroVersion"
 
     // unit test dependencies

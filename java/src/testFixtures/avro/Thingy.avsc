@@ -1,4 +1,4 @@
-{"namespace": "sandbox.kafka.test",
+{"namespace": "sandbox.kafka.test.models",
  "type": "record",
  "name": "AvroThingy",
  "fields": [

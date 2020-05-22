@@ -4,6 +4,8 @@ import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializer;
 import io.confluent.kafka.serializers.json.KafkaJsonSchemaSerializer;
+import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
+import io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.slf4j.Logger;
@@ -104,6 +106,13 @@ public abstract class KafkaIntegrationTest {
     return new Producer<>(config);
   }
 
+  static <T> Producer<byte[], T> createProtoProducer(String topic) {
+    ProducerConfig config = defaultProducerConfig(topic);
+    config.setValueSerializer(KafkaProtobufSerializer.class);
+    config.addProperty("schema.registry.url", schemaRegistryUrl);
+    return new Producer<>(config);
+  }
+
   private static ProducerConfig defaultProducerConfig(String topic) {
     ProducerConfig config = new ProducerConfig();
     config.setBrokers(kafka.getBootstrapServers());
@@ -127,6 +136,14 @@ public abstract class KafkaIntegrationTest {
     config.setValueDeserializer(KafkaJsonSchemaDeserializer.class);
     config.addProperty("schema.registry.url", schemaRegistryUrl);
     config.addProperty("json.value.type", type);
+    return new Consumer<>(config);
+  }
+
+  static <T> Consumer<byte[], T> createProtoConsumer(String topic, Class<T> type) {
+    ConsumerConfig config = defaultConsumerConfig(topic);
+    config.setValueDeserializer(KafkaProtobufDeserializer.class);
+    config.addProperty("schema.registry.url", schemaRegistryUrl);
+    config.addProperty("specific.protobuf.value.type", type);
     return new Consumer<>(config);
   }
 

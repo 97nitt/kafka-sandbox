@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package sandbox.kafka.test.models;
+
+option java_outer_classname = "ThingyProto";
+
+message Thingy {
+  string foo = 1;
+  string bar = 2;
+}
