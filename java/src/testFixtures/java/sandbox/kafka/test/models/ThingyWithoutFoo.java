@@ -5,5 +5,5 @@ import lombok.Data;
 @Data
 public class ThingyWithoutFoo {
 
-	private String bar;
+  private String bar;
 }

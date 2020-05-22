@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Thingy {
 
-	private String foo;
-	private String bar;
+  private String foo;
+  private String bar;
 }
