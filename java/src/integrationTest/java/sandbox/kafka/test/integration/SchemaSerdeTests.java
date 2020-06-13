@@ -1,9 +1,9 @@
 package sandbox.kafka.test.integration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
@@ -11,7 +11,7 @@ import java.util.function.BiConsumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import sandbox.kafka.consumer.Consumer;
 import sandbox.kafka.producer.Message;
 import sandbox.kafka.producer.Producer;

@@ -11,12 +11,12 @@ plugins {
 ext {
     avroVersion = '1.9.2'
     confluentVersion = '5.5.0'
-    junitVersion = '4.13'
+    junitVersion = '5.6.2'
     lombokVersion = '1.18.12'
     mockitoVersion = '3.3.3'
     protobufVersion = '3.12.0'
     slf4jVersion = '1.7.30'
-    testContainersVersion = '1.14.1'
+    testContainersVersion = '1.14.3'
 }
 
 protobuf {
@@ -61,21 +61,26 @@ dependencies {
     testFixturesImplementation "org.apache.avro:avro:$avroVersion"
 
     // unit test dependencies
-    testImplementation "junit:junit:$junitVersion"
+    testImplementation "org.junit.jupiter:junit-jupiter:$junitVersion"
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
 
     // integration test dependencies
-    integrationTestImplementation "junit:junit:$junitVersion"
+    integrationTestImplementation "org.junit.jupiter:junit-jupiter:$junitVersion"
+    integrationTestImplementation "org.testcontainers:junit-jupiter:$testContainersVersion"
     integrationTestImplementation "org.testcontainers:kafka:$testContainersVersion"
     integrationTestRuntimeOnly "org.slf4j:slf4j-log4j12:$slf4jVersion"
+}
+
+test {
+    useJUnitPlatform()
 }
 
 task integrationTest(type: Test) {
     description = 'Runs integration tests.'
     group = 'verification'
-
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath
+    useJUnitPlatform()
     mustRunAfter jacocoTestReport
 }
 

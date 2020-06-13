@@ -28,11 +28,10 @@ import sandbox.kafka.producer.ProducerConfig;
  */
 public abstract class KafkaIntegrationTest {
 
-  protected static final Logger logger = LoggerFactory.getLogger(KafkaIntegrationTest.class);
-
   private static final String CONFLUENT_VERSION = "5.5.0";
 
   // send container output to slf4j logger
+  private static final Logger logger = LoggerFactory.getLogger(KafkaIntegrationTest.class);
   private static final Slf4jLogConsumer logConsumer = new Slf4jLogConsumer(logger);
 
   // Docker network for inter-container communication
@@ -90,6 +89,14 @@ public abstract class KafkaIntegrationTest {
             schemaRegistry.getContainerIpAddress(), schemaRegistry.getMappedPort(8081));
   }
 
+  /**
+   * Create Kafka producer using Avro serialization.
+   *
+   * @param topic Kafka topic
+   * @param schemaReflection if true, use Avro schema reflection
+   * @param <T> Kafka message value type
+   * @return Kafka producer
+   */
   static <T> Producer<byte[], T> createAvroProducer(String topic, boolean schemaReflection) {
     ProducerConfig config = defaultProducerConfig(topic);
     config.setValueSerializer(KafkaAvroSerializer.class);
@@ -98,6 +105,14 @@ public abstract class KafkaIntegrationTest {
     return new Producer<>(config);
   }
 
+  /**
+   * Create Kafka producer using JSON serialization.
+   *
+   * @param topic Kafka topic
+   * @param type Kafka message value type
+   * @param <T> Kafka message value type
+   * @return Kafka producer
+   */
   static <T> Producer<byte[], T> createJsonProducer(String topic, Class<T> type) {
     ProducerConfig config = defaultProducerConfig(topic);
     config.setValueSerializer(KafkaJsonSchemaSerializer.class);
@@ -106,6 +121,13 @@ public abstract class KafkaIntegrationTest {
     return new Producer<>(config);
   }
 
+  /**
+   * Create Kafka producer using Protocol Buffers serialization.
+   *
+   * @param topic Kafka topic
+   * @param <T> Kafka message value type
+   * @return Kafka producer
+   */
   static <T> Producer<byte[], T> createProtoProducer(String topic) {
     ProducerConfig config = defaultProducerConfig(topic);
     config.setValueSerializer(KafkaProtobufSerializer.class);
@@ -122,6 +144,14 @@ public abstract class KafkaIntegrationTest {
     return config;
   }
 
+  /**
+   * Create Kafka consumer using Avro deserialization.
+   *
+   * @param topic Kafka topic
+   * @param schemaReflection if true, use Avro schema reflection
+   * @param <T> Kafka message value type
+   * @return Kafka consumer
+   */
   static <T> Consumer<byte[], T> createAvroConsumer(String topic, boolean schemaReflection) {
     ConsumerConfig config = defaultConsumerConfig(topic);
     config.setValueDeserializer(KafkaAvroDeserializer.class);
@@ -131,6 +161,14 @@ public abstract class KafkaIntegrationTest {
     return new Consumer<>(config);
   }
 
+  /**
+   * Create Kafka consumer using JSON deserialization.
+   *
+   * @param topic Kafka topic
+   * @param type Kafka message value type
+   * @param <T> Kafka message value type
+   * @return Kafka consumer
+   */
   static <T> Consumer<byte[], T> createJsonConsumer(String topic, Class<T> type) {
     ConsumerConfig config = defaultConsumerConfig(topic);
     config.setValueDeserializer(KafkaJsonSchemaDeserializer.class);
@@ -139,6 +177,14 @@ public abstract class KafkaIntegrationTest {
     return new Consumer<>(config);
   }
 
+  /**
+   * Create Kafka consumer using Protocol Buffers deserialization.
+   *
+   * @param topic Kafka topic
+   * @param type Kafka message value type
+   * @param <T> Kafka message value type
+   * @return Kafka consumer
+   */
   static <T> Consumer<byte[], T> createProtoConsumer(String topic, Class<T> type) {
     ConsumerConfig config = defaultConsumerConfig(topic);
     config.setValueDeserializer(KafkaProtobufDeserializer.class);
