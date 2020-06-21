@@ -92,13 +92,12 @@ public abstract class KafkaIntegrationTest {
   /**
    * Create Kafka producer using Avro serialization.
    *
-   * @param topic Kafka topic
    * @param schemaReflection if true, use Avro schema reflection
    * @param <T> Kafka message value type
    * @return Kafka producer
    */
-  static <T> Producer<byte[], T> createAvroProducer(String topic, boolean schemaReflection) {
-    ProducerConfig config = defaultProducerConfig(topic);
+  static <T> Producer<byte[], T> createAvroProducer(boolean schemaReflection) {
+    ProducerConfig config = defaultProducerConfig();
     config.setValueSerializer(KafkaAvroSerializer.class);
     config.addProperty("schema.registry.url", schemaRegistryUrl);
     config.addProperty("schema.reflection", schemaReflection);
@@ -108,13 +107,12 @@ public abstract class KafkaIntegrationTest {
   /**
    * Create Kafka producer using JSON serialization.
    *
-   * @param topic Kafka topic
    * @param type Kafka message value type
    * @param <T> Kafka message value type
    * @return Kafka producer
    */
-  static <T> Producer<byte[], T> createJsonProducer(String topic, Class<T> type) {
-    ProducerConfig config = defaultProducerConfig(topic);
+  static <T> Producer<byte[], T> createJsonProducer(Class<T> type) {
+    ProducerConfig config = defaultProducerConfig();
     config.setValueSerializer(KafkaJsonSchemaSerializer.class);
     config.addProperty("schema.registry.url", schemaRegistryUrl);
     config.addProperty("json.value.type", type);
@@ -124,21 +122,19 @@ public abstract class KafkaIntegrationTest {
   /**
    * Create Kafka producer using Protocol Buffers serialization.
    *
-   * @param topic Kafka topic
    * @param <T> Kafka message value type
    * @return Kafka producer
    */
-  static <T> Producer<byte[], T> createProtoProducer(String topic) {
-    ProducerConfig config = defaultProducerConfig(topic);
+  static <T> Producer<byte[], T> createProtoProducer() {
+    ProducerConfig config = defaultProducerConfig();
     config.setValueSerializer(KafkaProtobufSerializer.class);
     config.addProperty("schema.registry.url", schemaRegistryUrl);
     return new Producer<>(config);
   }
 
-  private static ProducerConfig defaultProducerConfig(String topic) {
+  private static ProducerConfig defaultProducerConfig() {
     ProducerConfig config = new ProducerConfig();
     config.setBrokers(kafka.getBootstrapServers());
-    config.setTopic(topic);
     config.setKeySerializer(ByteArraySerializer.class);
     config.setValueSerializer(ByteArraySerializer.class);
     return config;

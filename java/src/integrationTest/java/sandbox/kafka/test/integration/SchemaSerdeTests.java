@@ -30,7 +30,7 @@ public class SchemaSerdeTests extends KafkaIntegrationTest {
     Thingy input = new Thingy("test", "ing");
     String topic = "test-avro-reflection";
 
-    Producer<byte[], Thingy> producer = createAvroProducer(topic, true);
+    Producer<byte[], Thingy> producer = createAvroProducer(true);
     Consumer<byte[], Thingy> consumer = createAvroConsumer(topic, true);
 
     BiConsumer<Thingy, Thingy> assertions =
@@ -48,7 +48,7 @@ public class SchemaSerdeTests extends KafkaIntegrationTest {
 
     String topic = "test-avro-specific";
 
-    Producer<byte[], AvroThingy> producer = createAvroProducer(topic, false);
+    Producer<byte[], AvroThingy> producer = createAvroProducer(false);
     Consumer<byte[], AvroThingy> consumer = createAvroConsumer(topic, false);
 
     BiConsumer<AvroThingy, AvroThingy> assertions =
@@ -65,7 +65,7 @@ public class SchemaSerdeTests extends KafkaIntegrationTest {
     Thingy input = new Thingy("test", "ing");
     String topic = "test-json";
 
-    Producer<byte[], Thingy> producer = createJsonProducer(topic, Thingy.class);
+    Producer<byte[], Thingy> producer = createJsonProducer(Thingy.class);
     Consumer<byte[], Thingy> consumer = createJsonConsumer(topic, Thingy.class);
 
     BiConsumer<Thingy, Thingy> assertions =
@@ -82,7 +82,7 @@ public class SchemaSerdeTests extends KafkaIntegrationTest {
     ThingyProto.Thingy input = ThingyProto.Thingy.newBuilder().setFoo("test").setBar("ing").build();
     String topic = "test-proto";
 
-    Producer<byte[], ThingyProto.Thingy> producer = createProtoProducer(topic);
+    Producer<byte[], ThingyProto.Thingy> producer = createProtoProducer();
     Consumer<byte[], ThingyProto.Thingy> consumer =
         createProtoConsumer(topic, ThingyProto.Thingy.class);
 
@@ -104,7 +104,7 @@ public class SchemaSerdeTests extends KafkaIntegrationTest {
 
     // create test message
     String contextId = UUID.randomUUID().toString();
-    Message<byte[], I> message = new Message<>(input);
+    Message<byte[], I> message = new Message<>(topic, input);
     message.addHeader("context-id", contextId);
 
     // send message

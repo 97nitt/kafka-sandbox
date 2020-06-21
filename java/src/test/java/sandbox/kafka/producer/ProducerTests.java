@@ -24,7 +24,7 @@ public class ProducerTests {
     String value = "value";
     String contextId = UUID.randomUUID().toString();
 
-    Message<String, String> message = new Message<>(key, value);
+    Message<String, String> message = new Message<>(topic, key, value);
     message.addHeader("context-id", contextId);
 
     KafkaProducer<String, String> client = mock(KafkaProducer.class);
@@ -33,7 +33,7 @@ public class ProducerTests {
     ArgumentCaptor<Callback> callbackCaptor = ArgumentCaptor.forClass(Callback.class);
 
     // when
-    Producer<String, String> producer = new Producer<>(client, topic);
+    Producer<String, String> producer = new Producer<>(client);
     producer.send(message);
     producer.close();
 
@@ -59,7 +59,7 @@ public class ProducerTests {
     String value = "value";
     String contextId = UUID.randomUUID().toString();
 
-    Message<String, String> message = new Message<>(key, value);
+    Message<String, String> message = new Message<>(topic, key, value);
     message.addHeader("context-id", contextId);
 
     Callback callback = (meta, ex) -> {};
@@ -70,7 +70,7 @@ public class ProducerTests {
     ArgumentCaptor<Callback> callbackCaptor = ArgumentCaptor.forClass(Callback.class);
 
     // when
-    Producer<String, String> producer = new Producer<>(client, topic);
+    Producer<String, String> producer = new Producer<>(client);
     producer.send(message, callback);
     producer.close();
 

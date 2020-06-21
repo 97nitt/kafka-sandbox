@@ -15,7 +15,6 @@ public class ProducerConfigTests {
     // given
     ProducerConfig config = new ProducerConfig();
     config.setBrokers("localhost:9092");
-    config.setTopic("topic");
     config.setKeySerializer(ByteArraySerializer.class);
     config.setValueSerializer(StringSerializer.class);
     config.addProperty("client.id", "test");

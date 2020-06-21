@@ -18,9 +18,6 @@ public class ProducerConfig {
   /* Kafka broker URLs (comma-separated) */
   private String brokers;
 
-  /* Kafka topic */
-  private String topic;
-
   /* Message key serializer */
   private Class<? extends Serializer> keySerializer;
 

@@ -15,8 +15,9 @@ import org.slf4j.LoggerFactory;
 /**
  * Kafka producer.
  *
- * <p>This class wraps a {@link KafkaProducer}, but unlike that client, is limited to sending
- * messages to a single Kafka topic.
+ * <p>This class wraps the Apache {@link KafkaProducer}, adding a default callback that logs the
+ * success or failure of broker acknowledgement for each message sent. This callback can be
+ * overridden, if desired.
  *
  * @param <K> message key type
  * @param <V> message value type
@@ -24,6 +25,8 @@ import org.slf4j.LoggerFactory;
 public class Producer<K, V> {
 
   private static final Logger logger = LoggerFactory.getLogger(Producer.class);
+
+  /* default callback for each message sent, logs success or failed acknowledgement from broker */
   private static final Callback defaultCallback =
       (meta, e) -> {
         if (e == null) {
@@ -38,8 +41,8 @@ public class Producer<K, V> {
         }
       };
 
+  /* Apache Kafka Producer client */
   private final KafkaProducer<K, V> producer;
-  private final String topic;
 
   /**
    * Constructor.
@@ -47,18 +50,16 @@ public class Producer<K, V> {
    * @param config Kafka producer configuration
    */
   public Producer(ProducerConfig config) {
-    this(new KafkaProducer<>(config.getProducerProperties()), config.getTopic());
+    this(new KafkaProducer<>(config.getProducerProperties()));
   }
 
   /**
    * Package-private constructor, for unit testing purposes.
    *
    * @param producer Kafka producer client
-   * @param topic Kafka topic
    */
-  Producer(KafkaProducer<K, V> producer, String topic) {
+  Producer(KafkaProducer<K, V> producer) {
     this.producer = producer;
-    this.topic = topic;
   }
 
   /**
@@ -84,8 +85,8 @@ public class Producer<K, V> {
   public void send(Message<K, V> message, Callback callback) {
     ProducerRecord<K, V> record =
         new ProducerRecord<>(
-            topic,
-            null,
+            message.getTopic(),
+            message.getPartition(),
             message.getKey(),
             message.getValue(),
             convertHeaders(message.getHeaders()));
