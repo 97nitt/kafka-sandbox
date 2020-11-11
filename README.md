@@ -4,7 +4,8 @@ This repo serves as a playground for exploring features of Kafka.
 
 It contains the following subprojects:
 
-- [java](java): demonstrates use of Java clients to send and receive data via Kafka
+- [dotnet](dotnet): demonstrates use of .Net clients
+- [java](java): demonstrates use of Java clients
 
 ## Dockerized Kafka
 
