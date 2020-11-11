@@ -20,13 +20,13 @@ namespace Sandbox.Kafka
             // available. Note: by default strings are encoded as UTF8.
             using (var producer = new ProducerBuilder<Null, string>(config).Build())
             {
+                var message = new Message<Null, string>
+                {
+                    Value = "test"
+                };
+
                 try
                 {
-                    var message = new Message<Null, string>
-                    {
-                        Value = "test"
-                    };
-
                     var result = await producer.ProduceAsync(Topic, message);
                     Console.WriteLine($"Delivered '{result.Value}' to: topic={result.Topic}, partition={result.Partition.Value}, offset={result.Offset.Value}");
                 }
