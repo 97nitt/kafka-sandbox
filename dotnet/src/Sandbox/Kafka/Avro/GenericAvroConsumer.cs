@@ -1,24 +1,38 @@
+using Avro;
+using Avro.Generic;
+using Confluent.Kafka;
+using Confluent.Kafka.SyncOverAsync;
+using Confluent.SchemaRegistry;
+using Confluent.SchemaRegistry.Serdes;
 using System;
 using System.Threading;
-using Confluent.Kafka;
 
-namespace Sandbox.Kafka
+namespace Sandbox.Kafka.Avro
 {
-    class Consumer
+    class GenericAvroConsumer
     {
         public static void Main(string[] args)
         {
-            var conf = new ConsumerConfig
+            var schemaRegistryConfig = new SchemaRegistryConfig
+            {
+                Url = "http://localhost:8081"
+            };
+
+            var consumerConfig = new ConsumerConfig
             { 
                 GroupId = "test-consumer-group",
                 BootstrapServers = "localhost:9092",
                 AutoOffsetReset = AutoOffsetReset.Earliest
             };
 
-            using (var consumer = new ConsumerBuilder<Ignore, string>(conf).Build())
+            using (var schemaRegistry = new CachedSchemaRegistryClient(schemaRegistryConfig))
+            using (var consumer = 
+                new ConsumerBuilder<string, GenericRecord>(consumerConfig)
+                    .SetValueDeserializer(new AvroDeserializer<GenericRecord>(schemaRegistry).AsSyncOverAsync())
+                    .Build())
             {
-                Console.WriteLine($"Kafka consumer subscribing to topic: {Producer.Topic}");
-                consumer.Subscribe(Producer.Topic);
+                Console.WriteLine($"Kafka consumer subscribing to topic: {GenericAvroProducer.Topic}");
+                consumer.Subscribe(GenericAvroProducer.Topic);
 
                 CancellationTokenSource cts = new CancellationTokenSource();
                 Console.CancelKeyPress += (_, e) => {
