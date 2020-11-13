@@ -1,6 +1,7 @@
 # Kafka Sandbox for .Net
 
-This project serves as a playground for exporing features of Kafka using .Net.
+This project serves as a playground for exporing features of Kafka using the
+[Confluent Kafka .NET](https://github.com/confluentinc/confluent-kafka-dotnet) client.
 
 ## Producer Clients
 

@@ -6,6 +6,7 @@ It contains the following subprojects:
 
 - [dotnet](dotnet): demonstrates use of .Net clients
 - [java](java): demonstrates use of Java clients
+- [python](python): demonstrates use of Python clients
 
 ## Dockerized Kafka
 
