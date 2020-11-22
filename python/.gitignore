@@ -5,4 +5,5 @@
 .idea/
 
 # binary files
+*.egg-info/
 __pycache__/

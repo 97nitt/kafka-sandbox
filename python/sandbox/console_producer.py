@@ -13,20 +13,33 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # setup command line arguments
-parser = argparse.ArgumentParser()
-parser.add_argument("--brokers", help="Kafka Broker URLs", default="localhost:9092")
-parser.add_argument("--topic", help="Kafka topic", required=True)
-parser.add_argument("--avro", help="Serialize messages using Avro", action="store_true")
-parser.add_argument("--schema", help="Path to Avro schema file")
-parser.add_argument("--schema-registry", help="Scham Registry URL", default="http://localhost:8081")
+parser = argparse.ArgumentParser(
+    description="Kafka console producer.",
+    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument("--brokers",
+                    help="Kafka Broker URLs",
+                    default="localhost:9092")
+parser.add_argument("--topic",
+                    help="Kafka topic",
+                    required=True)
+parser.add_argument("--avro",
+                    help="Serialize messages using Avro",
+                    action="store_true")
+parser.add_argument("--schema",
+                    help="Path to Avro schema file",
+                    metavar="FILE")
+parser.add_argument("--registry",
+                    help="Schema Registry URL",
+                    default="http://localhost:8081",
+                    metavar="URL")
 
 # parse command line arguments
 args = parser.parse_args()
 if args.avro:
     if not args.schema:
         parser.error("--schema is required when using --avro")
-    if not args.schema_registry:
-        parser.error("--schema-registry is required when using --avro")
+    if not args.registry:
+        parser.error("--registry is required when using --avro")
 
 # initialize counters to track messages sent
 messages_sent = 0
@@ -64,7 +77,7 @@ if args.avro:
     producer = AvroProducer(
         args.brokers,
         args.topic,
-        args.schema_registry,
+        args.registry,
         schema.from_file(args.schema))
 else:
     producer = Producer(args.brokers, args.topic)

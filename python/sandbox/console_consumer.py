@@ -14,22 +14,38 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # setup command line arguments
-parser = argparse.ArgumentParser()
-parser.add_argument("--brokers", help="Kafka Broker URLs", default="localhost:9092")
-parser.add_argument("--topic", help="Kafka topic", required=True)
-parser.add_argument("--group", help="Kafka consumer group")
-parser.add_argument("--from-earliest", help="If no committed offsets are available, start from earliest", action="store_true")
-parser.add_argument("--avro", help="Serialize messages using Avro", action="store_true")
-parser.add_argument("--schema", help="Path to Avro schema file")
-parser.add_argument("--schema-registry", help="Scham Registry URL", default="http://localhost:8081")
+parser = argparse.ArgumentParser(
+    description="Kafka console consumer.",
+    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument("--brokers",
+                    help="Kafka Broker URLs",
+                    default="localhost:9092")
+parser.add_argument("--topic",
+                    help="Kafka topic",
+                    required=True)
+parser.add_argument("--group",
+                    help="Kafka consumer group")
+parser.add_argument("--from-earliest",
+                    help="If no committed offsets are available, start from earliest",
+                    action="store_true")
+parser.add_argument("--avro",
+                    help="Serialize messages using Avro",
+                    action="store_true")
+parser.add_argument("--schema",
+                    help="Path to Avro schema file",
+                    metavar="FILE")
+parser.add_argument("--registry",
+                    help="Scham Registry URL",
+                    default="http://localhost:8081",
+                    metavar="URL")
 
 # parse command line arguments
 args = parser.parse_args()
 if args.avro:
     if not args.schema:
         parser.error("--schema is required when using --avro")
-    if not args.schema_registry:
-        parser.error("--schema-registry is required when using --avro")
+    if not args.registry:
+        parser.error("--registry is required when using --avro")
 
 # initialize counter to track messages received
 messages_received = 0
@@ -66,7 +82,7 @@ if args.avro:
         args.topic,
         group,
         message_handler,
-        args.schema_registry,
+        args.registry,
         schema.from_file(args.schema),
         config=config)
 else:
