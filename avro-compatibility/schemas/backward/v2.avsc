@@ -1,0 +1,14 @@
+{
+    "namespace": "sandbox.avro.backward",
+    "name": "TestMessage",
+    "type": "record",
+    "fields": [{
+        "name": "field2",
+        "type": "string"
+    }, {
+        "name": "field3",
+        "type": ["null", "string"],
+        "default": null
+    }]
+}
+

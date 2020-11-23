@@ -1,0 +1,12 @@
+{
+    "namespace": "sandbox.avro.forward",
+    "name": "TestMessage",
+    "type": "record",
+    "fields": [{
+        "name": "field1",
+        "type": "string"
+    }, {
+        "name": "field3",
+        "type": "string"
+    }]
+}
